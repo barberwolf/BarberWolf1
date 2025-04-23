@@ -2,40 +2,133 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-    <meta charset="UTF-8">
-    <title>Admin BarberWolf</title>
-    <style>
-        body { font-family: Arial; background: #f8f8f8; padding: 20px; }
-        .hidden { display: none; }
-        .admin-panel { padding: 20px; background: white; border-radius: 10px; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Admin BarberWolf COMPLETO</title>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body>
-    <h1>Accesso Area Admin</h1>
-    <div id="login">
-        <label>Username: <input type="text" id="user"></label><br>
-        <label>Password: <input type="password" id="pass"></label><br>
-        <button onclick="login()">Entra</button>
-    </div>
-    <div id="adminPanel" class="hidden admin-panel">
-        <h2>Pannello di Gestione</h2>
-        <ul>
-            <li>Gestione recensioni (visualizza/elimina)</li>
-            <li>Caricamento immagini/video per la galleria</li>
-            <li>Gestione prenotazioni ricevute</li>
-        </ul>
-    </div>
-    <script>
-        function login() {
-            const u = document.getElementById("user").value;
-            const p = document.getElementById("pass").value;
-            if (u === "admin" && p === "barberwolf123") {
-                document.getElementById("login").style.display = "none";
-                document.getElementById("adminPanel").classList.remove("hidden");
-            } else {
-                alert("Credenziali errate");
-            }
-        }
-    </script>
+  <h1>Area Admin BarberWolf</h1>
+
+  <div id="login">
+    <input type="text" id="user" placeholder="Username"><br>
+    <input type="password" id="pass" placeholder="Password"><br>
+    <button onclick="doLogin()">Accedi</button>
+  </div>
+
+  <div id="adminPanel" style="display:none;">
+    <h2>Statistiche</h2>
+    <p>Totale recensioni: <span id="statRecensioni">0</span></p>
+    <p>Media stelle: <span id="statMedia">0.0</span></p>
+    <p>Prenotazioni inviate: <span id="statPrenotazioni">0</span></p>
+
+    <h2>Gestione Promozione</h2>
+    <textarea id="promoText" rows="2" cols="40"></textarea><br>
+    <label><input type="checkbox" id="promoToggle"> Attiva promozione</label><br>
+    <button onclick="salvaPromo()">Salva Promozione</button>
+
+    <h2>Sezione Finale del Sito</h2>
+    <textarea id="contenutoFinaleInput" rows="3" cols="50"></textarea><br>
+    <button onclick="salvaFinale()">Salva Contenuto Finale</button>
+
+    <h2>Gestione Media (immagini/video)</h2>
+    <input type="file" id="mediaFile" accept="image/*,video/*"><br>
+    <button onclick="uploadMedia()">Carica Media</button>
+    <div id="mediaGallery" style="margin-top:20px;"></div>
+  </div>
+
+<script>
+// Firebase demo config (sostituibile con il tuo progetto in produzione)
+const firebaseConfig = {
+  apiKey: "AIzaSyDXXXXX-DemoKey-XXXXXX",
+  authDomain: "barberwolf-demo.firebaseapp.com",
+  projectId: "barberwolf-demo",
+  storageBucket: "barberwolf-demo.appspot.com",
+  messagingSenderId: "000000000000",
+  appId: "1:000000000000:web:demoid"
+};
+firebase.initializeApp(firebaseConfig);
+const storage = firebase.storage();
+const database = firebase.database();
+
+function doLogin() {
+  const user = document.getElementById("user").value.trim();
+  const pass = document.getElementById("pass").value.trim();
+  if (user === "admin" && pass === "barberwolf123") {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("adminPanel").style.display = "block";
+    caricaDati();
+    caricaMedia();
+  } else {
+    alert("Credenziali errate");
+  }
+}
+
+function caricaDati() {
+  let recensioni = JSON.parse(localStorage.getItem("recensioni")) || [];
+  let stelle = recensioni.reduce((sum, r) => sum + parseInt(r.stelle), 0);
+  let media = recensioni.length ? (stelle / recensioni.length).toFixed(1) : "0.0";
+  let prenotazioni = parseInt(localStorage.getItem("prenotazioniTotali")) || 0;
+
+  document.getElementById("statRecensioni").innerText = recensioni.length;
+  document.getElementById("statMedia").innerText = media;
+  document.getElementById("statPrenotazioni").innerText = prenotazioni;
+
+  document.getElementById("promoText").value = localStorage.getItem("promoText") || "";
+  document.getElementById("promoToggle").checked = localStorage.getItem("promoActive") === "true";
+  document.getElementById("contenutoFinaleInput").value = localStorage.getItem("contenutoFinale") || "";
+}
+
+function salvaPromo() {
+  localStorage.setItem("promoText", document.getElementById("promoText").value);
+  localStorage.setItem("promoActive", document.getElementById("promoToggle").checked);
+  alert("Promozione salvata!");
+}
+
+function salvaFinale() {
+  localStorage.setItem("contenutoFinale", document.getElementById("contenutoFinaleInput").value);
+  alert("Contenuto aggiornato!");
+}
+
+function uploadMedia() {
+  const file = document.getElementById("mediaFile").files[0];
+  if (!file) return;
+
+  const fileRef = storage.ref('media/' + file.name);
+  fileRef.put(file).then(() => {
+    fileRef.getDownloadURL().then(url => {
+      database.ref("media").push({
+        url: url,
+        type: file.type
+      });
+      alert("Media caricato con successo!");
+      caricaMedia();
+    });
+  });
+}
+
+function caricaMedia() {
+  const gallery = document.getElementById("mediaGallery");
+  gallery.innerHTML = '';
+  database.ref("media").once("value", snapshot => {
+    snapshot.forEach(child => {
+      const data = child.val();
+      let el;
+      if (data.type.startsWith("image")) {
+        el = document.createElement("img");
+        el.src = data.url;
+        el.style = "max-width: 200px; margin: 10px;";
+      } else if (data.type.startsWith("video")) {
+        el = document.createElement("video");
+        el.src = data.url;
+        el.controls = true;
+        el.style = "max-width: 200px; margin: 10px;";
+      }
+      gallery.appendChild(el);
+    });
+  });
+}
+</script>
 </body>
 </html>

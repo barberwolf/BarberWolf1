@@ -108,33 +108,7 @@
 </section>
 
 
-<section id="prenotazioni">
-    <h2>Prenota un Appuntamento</h2>
-    <form id="bookingForm">
-        <label>Nome: <input type="text" name="nome" required></label>
-        <label>Servizio:
-            <select name="servizio">
-                <option>Taglio</option>
-                <option>Barba</option>
-                <option>Taglio + Barba</option>
-            </select>
-        </label>
-        <label>Data e Ora:
-            <input type="datetime-local" name="dataora" required>
-        </label>
-        <button type="submit">Prenota su WhatsApp</button>
-    </form>
-    <script>
-        document.getElementById('bookingForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            const nome = this.nome.value;
-            const servizio = this.servizio.value;
-            const dataora = this.dataora.value;
-            const msg = `Ciao, sono ${nome}, vorrei prenotare un ${servizio} per il ${dataora}`;
-            window.open(`https://wa.me/393482625561?text=${encodeURIComponent(msg)}`, '_blank');
-        });
-    </script>
-</section>
+
 
 <section id="galleria">
     <h2>Galleria Foto e Video</h2>
@@ -142,6 +116,17 @@
         <p>Qui appariranno le immagini e i video caricati.</p>
     </div>
 </section>
+
+
+<section id="promoBanner" style="display:none; background: yellow; padding: 10px; text-align: center;"></section>
+<section id="contenutoFinale" style="background:#eee; padding: 20px; margin-top: 30px;">
+  <div id="contenutoPersonalizzato">Grazie per aver visitato BarberWolf!</div>
+</section>
+<script>
+  document.getElementById("promoBanner").innerText = localStorage.getItem("promoText") || "";
+  document.getElementById("promoBanner").style.display = localStorage.getItem("promoActive") === "true" ? "block" : "none";
+  document.getElementById("contenutoPersonalizzato").innerHTML = localStorage.getItem("contenutoFinale") || "";
+</script>
 
 </body>
 </html>
