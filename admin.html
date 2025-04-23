@@ -1,0 +1,41 @@
+
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin BarberWolf</title>
+    <style>
+        body { font-family: Arial; background: #f8f8f8; padding: 20px; }
+        .hidden { display: none; }
+        .admin-panel { padding: 20px; background: white; border-radius: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Accesso Area Admin</h1>
+    <div id="login">
+        <label>Username: <input type="text" id="user"></label><br>
+        <label>Password: <input type="password" id="pass"></label><br>
+        <button onclick="login()">Entra</button>
+    </div>
+    <div id="adminPanel" class="hidden admin-panel">
+        <h2>Pannello di Gestione</h2>
+        <ul>
+            <li>Gestione recensioni (visualizza/elimina)</li>
+            <li>Caricamento immagini/video per la galleria</li>
+            <li>Gestione prenotazioni ricevute</li>
+        </ul>
+    </div>
+    <script>
+        function login() {
+            const u = document.getElementById("user").value;
+            const p = document.getElementById("pass").value;
+            if (u === "admin" && p === "barberwolf123") {
+                document.getElementById("login").style.display = "none";
+                document.getElementById("adminPanel").classList.remove("hidden");
+            } else {
+                alert("Credenziali errate");
+            }
+        }
+    </script>
+</body>
+</html>
